@@ -1,0 +1,126 @@
+﻿
+@page "/product"
+@using System.Globalization
+@inject IProductRepository _productRepository
+@inject IJSRuntime _JS
+
+@if(IsProcessing)
+{
+	<div class="position-absolute w-75 h-75 d-flex	flex-column align-items-center bg-white justify-content-center">
+		<img src="/images//loading.gif" alt="loading" />
+	</div>
+}
+else
+{
+	<_BSModal OnModelConfirmation="ConfirmDeleteClick" ButtonBoostrapStyle="btn-danger" ButtonText="Delete" Title="Delete">
+
+	</_BSModal>
+	<div class="card shadow border-0 m-4">
+		<div class="card-header bg-black bg-gradient ml-0 py-3">
+			<div class="row">
+				<div class="col-12 text-center">
+					<h2 class="text-white py-2">Product List</h2>
+				</div>
+			</div>
+		</div>
+		<div class="card-body pt-4">
+			<div class="row pb-3">
+				<div class="col-12 text-end">
+					<a href="/product/create" class="btn btn-lg btn-secondary" style="width:250px;"><i class="bi bi-bag-plus"></i> Add New Product</a>
+				</div>
+			</div>
+			@if(ProductsList.Any())
+			{
+				<table class="table table-bordered table-stripped">
+					<thead>
+						<tr>
+							<th>
+								Name
+							</th>
+							<th>Price</th>
+							<th><span class="badge text-bg-info">Special tags</span></th>
+							<th>Category</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach(var obj in ProductsList)
+						{
+							<tr>	
+								<td>@obj.Name</td>
+								<td>@obj.Price.ToString("C", CultureInfo.GetCultureInfo("cs-CZ"))</td>
+								<td><span class="badge text-bg-info">@obj.SpecialTag</span></td>
+								<td>@obj.Category.Name</td>
+								
+								<td>
+									<a href="@($"/product/update/{obj.Id}")" class="btn btn-primary"><i class="bi bi-pen-fill"></i> Edit</a>
+									<button class="btn btn-danger" @onclick="()=>HandleDelete(obj.Id)"><i class="bi bi-trash"></i> Delete</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</div>
+	</div>
+}
+@code {
+	public bool IsProcessing{ get; set; } = true;
+	private IEnumerable<Product> ProductsList { get; set; } = new List<Product>();
+	private int DeleteProductId { get; set; } = 0;
+	
+	// protected override async Task OnInitializedAsync()
+	// {
+	// 	// IsProcessing=true;
+	// 	// await LoadProducts();
+	// 	// Thread.Sleep(5000);
+	// 	// IsProcessing = false;
+	// }
+	private async Task LoadProducts()
+	{
+		ProductsList = await _productRepository.GetAllAsync();
+	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+
+			await LoadProducts();
+			IsProcessing = false;
+			StateHasChanged();
+
+		}
+
+	}
+	private void HandleDelete(int id)
+	{
+		DeleteProductId = id;
+		_JS.InvokeVoidAsync("ShowConfirmationModal");
+	}
+	private async Task ConfirmDeleteClick(bool isConfirmed)
+	{
+		IsProcessing = true;
+		await _JS.InvokeVoidAsync("HideConfirmationModal");
+		if(isConfirmed && DeleteProductId>0)
+		{
+			var result =await _productRepository.DeleteAsync(DeleteProductId);
+			if(result)
+			{
+				await _JS.ToastrSuccess("Product Deleted Successfully");
+				await LoadProducts();
+			}
+			else await _JS.ToastrError("Product NOT Deleted");
+
+			
+		}
+		else
+		{
+			
+			DeleteProductId = 0;
+			
+		}
+		IsProcessing = false;
+	}
+	
+}
+	

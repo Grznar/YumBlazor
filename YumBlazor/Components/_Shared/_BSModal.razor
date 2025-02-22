@@ -1,0 +1,40 @@
+﻿
+
+<div class="modal fade" id="bsConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">@Title</h5>
+               
+            </div>
+            <div class="modal-body">
+                Do u want to delete this category?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-lg btn-secondary" data-dismiss="modal" @onclick="()=>ConfirmationClicked(false)" style="width:150px;">Close</button>
+                <button type="button" class="btn btn-lg @ButtonBoostrapStyle" @onclick="()=>ConfirmationClicked(true)" style="width:150px;">@ButtonText</button>
+            </div>
+        </div>
+    </div>
+</div>
+@code
+{
+    [Parameter]
+    public string ButtonBoostrapStyle { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+    [Parameter]
+	public string ButtonText { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnModelConfirmation { get; set; }
+
+    private async Task ConfirmationClicked(bool isConfirmed)
+    {
+        
+			await OnModelConfirmation.InvokeAsync(isConfirmed);
+            
+        
+        
+    }
+        }
