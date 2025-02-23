@@ -10,14 +10,15 @@
 
 <PageTitle>Cart</PageTitle>
 
-@if (isProcessing)
+ @if (IsProcessing)
 {
 	<div class="position-absolute w-100 vh-100 d-flex	flex-column align-items-center bg-white justify-content-center">
 		<img src="/images//loading.gif" alt="loading" />
 	</div>
-}
+} 
 else
 {
+
 	<div class="row w-100">
 		<div class="col-lg-6 col-12">
 			<div class="container p-4 m-2">
@@ -29,38 +30,38 @@ else
 				{
 					<div class="d-flex p-2 m-2">
 						<div class="card flex-row w-100">
-						<img class="card-img-left" style="width: 120px;">
-						<div class="card-body">
-							<div class="d-flex justify-content-between align-items-center">
-								<h4 class="">
+							<img class="card-img-left" style="width: 120px;" src="@((cartItem.Product.ImageUrl)??"/images/default.png")">
+							<div class="card-body">
+								<div class="d-flex justify-content-between align-items-center">
+									<h4 class="">
 										@cartItem.Product.Name
-								</h4>
-								<h4>
+									</h4>
+									<h4>
 										@cartItem.Product.Price.ToString("C", CultureInfo.GetCultureInfo("cs-CZ"))
-								</h4>
-							</div>
-							<div class="flex-fill">
-								<h4 class="text-danger">
-								@((cartItem.Product.Price * @cartItem.Count).ToString("C", CultureInfo.GetCultureInfo("cs-CZ")))
-								</h4>
-							</div>
-							<div class="d-flex justify-content-between align-items-center">
-								<div class="d-flex justify-content-between g-0">
-									<span>
-										<i class="bi bi-dash-circle-fill btn text-secondary"></i>
-									</span>
-									<span class="ml-1 me-1">
-										<b class="lead">@cartItem.Count</b>
-									</span>
-									<span>
-										<i class="bi bi-plus-circle-fill btn text-secondary"></i>
-									</span>
+									</h4>
 								</div>
-								<button class="btn btn-danger">Remove</button>
+								<div class="flex-fill">
+									<h4 class="text-danger">
+										@((cartItem.Product.Price * cartItem.Count).ToString("C", CultureInfo.GetCultureInfo("cs-CZ")))
+									</h4>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<div class="d-flex justify-content-between g-0">
+										<span @onclick="()=>UpdateCartItem(cartItem.ProductId,-1)">
+											<i class="bi bi-dash-circle-fill btn text-secondary"></i>
+										</span>
+										<span class="ml-1 me-1">
+											<b class="lead">@cartItem.Count</b>
+										</span>
+										<span @onclick="()=>UpdateCartItem(cartItem.ProductId,1)">
+											<i class="bi bi-plus-circle-fill btn text-secondary"></i>
+										</span>
+									</div>
+									<button class="btn btn-danger" @onclick="()=>UpdateCartItem(cartItem.ProductId,-999999999)">Remove</button>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
 				}
 			</div>
 		</div>
@@ -107,24 +108,45 @@ else
 }
 
 @code {
-
-	private IEnumerable<ShoppingCart> ShoppingCarts { get; set; } = new List<ShoppingCart>();
-	private bool isProcessing = true;
-
+	private IEnumerable<ShoppingCart> ShoppingCarts = new List<ShoppingCart>();
+	private bool IsProcessing { get; set; } = true;
+	protected override async Task OnInitializedAsync()
+	{
+		Console.WriteLine("OnInitializedAsync executed");
+		await LoadCart();
+		IsProcessing = false;
+		StateHasChanged();
+		await base.OnInitializedAsync();
+	}
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		Console.WriteLine("OnAfterRenderAsync executed, firstRender: " + firstRender);
 		if (firstRender)
 		{
 			await LoadCart();
-			isProcessing = false;
+			IsProcessing = false;
 			StateHasChanged();
 		}
-
 	}
+
 	private async Task LoadCart()
 	{
 		var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
 		ShoppingCarts = await _shoppingCartRepository.GetAllAsync(user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value);
+	}
+
+	private async Task UpdateCartItem(int productId,int updateBy)
+	{
+		var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+
+		var user = authState.User;
+
+
+
+		var result = await _shoppingCartRepository.UpdateCartAsync(user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value, productId, updateBy);
+
+		await LoadCart();
+
 	}
 }

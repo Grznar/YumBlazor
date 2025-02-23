@@ -159,7 +159,7 @@ else
 		var authenticated = user.Identity is not null && user.Identity.IsAuthenticated;
 		if (!authenticated)
 		{
-			_navigationManager.NavigateTo("/Account/Login");
+			_navigationManager.NavigateTo("/Account/Login",true);
 		}
 		else
 		{
