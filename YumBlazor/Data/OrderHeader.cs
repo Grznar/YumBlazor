@@ -18,7 +18,7 @@ namespace YumBlazor.Data
         public DateTime OrderDate { get; set; }
 
         [Required]
-        public string Status { get; set; }
+        public string OrderStatus { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]

@@ -10,7 +10,7 @@ namespace YumBlazor.Data
         public int OrderHeaderId { get; set; }
         
         public OrderHeader OrderHeader { get; set; }
-        public int ProductIt { get; set; }
+        public int ProductId { get; set; }
         public Product Product { get; set; }
         [Required]
         public int Count { get; set; }

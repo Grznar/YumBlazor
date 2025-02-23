@@ -35,7 +35,9 @@ else
 
 					</div>
 					<div class="form-floating py-3 col-12">
-						<InputText @bind-Value="Product.Description" class="form-control" id="Description" />
+						<RadzenHtmlEditor  @bind-Value="Product.Description" class="form-control" id="Description" style="height:300px;">
+
+						</RadzenHtmlEditor>
 						<label for="Description">Description</label>
 						<ValidationMessage For="@(() => Product.Description)" />
 
